@@ -17,72 +17,72 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
     public partial class MainWindow : Window
     {
         /// <summary>
-        /// Width of output drawing
+        /// Anchura del dibujo de salida
         /// </summary>
         private const float RenderWidth = 640.0f;
 
         /// <summary>
-        /// Height of our output drawing
+        /// Altura del dibujo de salida
         /// </summary>
         private const float RenderHeight = 480.0f;
 
         /// <summary>
-        /// Thickness of drawn joint lines
+        /// Grosor de las articulaciones
         /// </summary>
         private const double JointThickness = 3;
 
         /// <summary>
-        /// Thickness of body center ellipse
+        /// Grosor de la elipse central del cuerpo
         /// </summary>
         private const double BodyCenterThickness = 10;
 
         /// <summary>
-        /// Thickness of clip edge rectangles
+        /// Grosor de los bordes rectangulares de la ventana
         /// </summary>
         private const double ClipBoundsThickness = 10;
 
         /// <summary>
-        /// Brush used to draw skeleton center point
+        /// Pincel usado para dibujar el punto central del cuerpo
         /// </summary>
         private readonly Brush centerPointBrush = Brushes.Blue;
 
         /// <summary>
-        /// Brush used for drawing joints that are currently tracked
+        /// Pincel usado para dibujar artuculaciones rastreadas correctamente
         /// </summary>
         private readonly Brush trackedJointBrush = new SolidColorBrush(Color.FromArgb(255, 68, 192, 68));
 
         /// <summary>
-        /// Brush used for drawing joints that are currently inferred
+        /// Pincel usado para dibujar artuculaciones no rastreadas correctamente
         /// </summary>        
         private readonly Brush inferredJointBrush = Brushes.Yellow;
 
         /// <summary>
-        /// Pen used for drawing bones that are currently tracked
+        /// Pen usado para dibujar huesos rastreados correctamente
         /// </summary>
         private readonly Pen trackedBonePen = new Pen(Brushes.Green, 6);
 
         /// <summary>
-        /// Pen used for drawing bones that are currently inferred
+        /// Pen usado para dibujar huesos no rastreados correctamente
         /// </summary>        
         private readonly Pen inferredBonePen = new Pen(Brushes.Gray, 1);
 
         /// <summary>
-        /// Active Kinect sensor
+        /// Sensor Kinect activo
         /// </summary>
         private KinectSensor sensor;
 
         /// <summary>
-        /// Drawing group for skeleton rendering output
+        /// Grupo de dibujo para la salida del esqueleto renderizado
         /// </summary>
         private DrawingGroup drawingGroup;
 
         /// <summary>
-        /// Drawing image that we will display
+        /// Imagen que mostraremos por pantalla
         /// </summary>
         private DrawingImage imageSource;
 
         /// <summary>
-        /// Initializes a new instance of the MainWindow class.
+        /// Inicializa una nueva instancia de la clase MainWindow (constructor)
         /// </summary>
         public MainWindow()
         {
@@ -90,20 +90,23 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         }
 
         /// <summary>
-        /// Draws indicators to show which edges are clipping skeleton data
+        /// Dibuja indicadores rectangulares para mostrar qué bordes están perdiendo información del esqueleto
         /// </summary>
-        /// <param name="skeleton">skeleton to draw clipping information for</param>
-        /// <param name="drawingContext">drawing context to draw to</param>
+        /// <param name="skeleton">esqueleto para el que se dibujan los bordes de pérdida de información</param>
+        /// <param name="drawingContext">contexto de dibujo para el que dibujar</param>
         private static void RenderClippedEdges(Skeleton skeleton, DrawingContext drawingContext)
         {
+            //Se comprueba si hay perdida de información en el borde inferior de la cámara
             if (skeleton.ClippedEdges.HasFlag(FrameEdges.Bottom))
             {
+                //En caso afirmativo, se dibuja un rectángulo rojo
                 drawingContext.DrawRectangle(
                     Brushes.Red,
                     null,
                     new Rect(0, RenderHeight - ClipBoundsThickness, RenderWidth, ClipBoundsThickness));
             }
 
+            //Se comprueba si hay perdida de información en el borde superior de la cámara
             if (skeleton.ClippedEdges.HasFlag(FrameEdges.Top))
             {
                 drawingContext.DrawRectangle(
@@ -112,6 +115,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                     new Rect(0, 0, RenderWidth, ClipBoundsThickness));
             }
 
+            //Se comprueba si hay perdida de información en el borde izquierdo de la cámara
             if (skeleton.ClippedEdges.HasFlag(FrameEdges.Left))
             {
                 drawingContext.DrawRectangle(
@@ -119,7 +123,8 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                     null,
                     new Rect(0, 0, ClipBoundsThickness, RenderHeight));
             }
-
+            
+            //Se comprueba si hay perdida de información en el borde derecho de la cámara
             if (skeleton.ClippedEdges.HasFlag(FrameEdges.Right))
             {
                 drawingContext.DrawRectangle(
@@ -130,27 +135,28 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         }
 
         /// <summary>
-        /// Execute startup tasks
+        /// Ejecuta tareas de inicio
         /// </summary>
-        /// <param name="sender">object sending the event</param>
-        /// <param name="e">event arguments</param>
+        /// <param name="sender">objeto que envia el evento</param>
+        /// <param name="e">argumentos del evento</param>
         private void WindowLoaded(object sender, RoutedEventArgs e)
         {
-            // Create the drawing group we'll use for drawing
+            // Crea el grupo de dibujo que se usará para dibujar durante la ejecución
             this.drawingGroup = new DrawingGroup();
 
-            // Create an image source that we can use in our image control
+            // Se define una fuente de imagen que podemos usar en el control de nuestra imagen
             this.imageSource = new DrawingImage(this.drawingGroup);
 
-            // Display the drawing using our image control
+            // Muestra por pantalla el dibujo usando nuestro control de imagen
             Image.Source = this.imageSource;
 
-            // Look through all sensors and start the first connected one.
-            // This requires that a Kinect is connected at the time of app startup.
-            // To make your app robust against plug/unplug, 
-            // it is recommended to use KinectSensorChooser provided in Microsoft.Kinect.Toolkit (See components in Toolkit Browser).
+            // Mira a través de todos los sensores e inicia el primero conectado.
+            // Esta acción requiere que un Kinect esté conectado cuando se ejecuta la aplicación.
+            // Para hacer nuestra aplicación robusta con el plug/unplug,
+            // se recomienda usar KinectSensorChooser disponible en Microsoft.Kinect.Toolkit (Véase componentes in Toolkit Browser).
             foreach (var potentialSensor in KinectSensor.KinectSensors)
             {
+                //Si encuentra un sensor Kinect conectado lo asigna y sale del bucle.
                 if (potentialSensor.Status == KinectStatus.Connected)
                 {
                     this.sensor = potentialSensor;
@@ -158,15 +164,16 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                 }
             }
 
+            //Si se ha encontrado un sensor conectado.
             if (null != this.sensor)
             {
-                // Turn on the skeleton stream to receive skeleton frames
+                // Se activa el stream del esqueleto para recibir fotogramas del esqueleto.
                 this.sensor.SkeletonStream.Enable();
 
-                // Add an event handler to be called whenever there is new color frame data
+                // Se añade un manejador de enventos para ser llamado siempre que haya datos de un nuevo fotograma de color.
                 this.sensor.SkeletonFrameReady += this.SensorSkeletonFrameReady;
 
-                // Start the sensor!
+                // Se enciende el sensor Kinect.
                 try
                 {
                     this.sensor.Start();
@@ -177,6 +184,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                 }
             }
 
+            //Si no se ha encontrado un sensor se muestra un mensaje de estado.
             if (null == this.sensor)
             {
                 this.statusBarText.Text = Properties.Resources.NoKinectReady;
@@ -184,12 +192,13 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         }
 
         /// <summary>
-        /// Execute shutdown tasks
+        /// Ejecuta tareas de apagado
         /// </summary>
-        /// <param name="sender">object sending the event</param>
-        /// <param name="e">event arguments</param>
+        /// <param name="sender">objeto que envia el evento</param>
+        /// <param name="e">argumentos del evento</param>
         private void WindowClosing(object sender, System.ComponentModel.CancelEventArgs e)
         {
+            //Si hay un sensor activo, se detiene.
             if (null != this.sensor)
             {
                 this.sensor.Stop();
@@ -197,14 +206,19 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         }
 
         /// <summary>
-        /// Event handler for Kinect sensor's SkeletonFrameReady event
+        /// Manejador para los eventos SkeletonFrameReady de los sensores de Kinect
         /// </summary>
-        /// <param name="sender">object sending the event</param>
-        /// <param name="e">event arguments</param>
+        /// <param name="sender">objeto que envia el evento</param>
+        /// <param name="e">argumentos del evento</param>
         private void SensorSkeletonFrameReady(object sender, SkeletonFrameReadyEventArgs e)
         {
+            //Se declara un array de objetos esqueleto.
             Skeleton[] skeletons = new Skeleton[0];
 
+            //Asigna una sintaxis determinada para un SkeletonFrame
+            //http://msdn.microsoft.com/es-es/library/yh598w02.aspx
+            //http://msdn.microsoft.com/es-es/library/zhdeatwt.aspx
+            ///////////////////////////////////////////////////////
             using (SkeletonFrame skeletonFrame = e.OpenSkeletonFrame())
             {
                 if (skeletonFrame != null)
@@ -216,19 +230,25 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
 
             using (DrawingContext dc = this.drawingGroup.Open())
             {
-                // Draw a transparent background to set the render size
+                // Dibuja un fondo transparante para configurar el tamaño de renderizado.
                 dc.DrawRectangle(Brushes.Black, null, new Rect(0.0, 0.0, RenderWidth, RenderHeight));
 
+                //Si hay objetos en el array de skeleton creado anteriormente.
                 if (skeletons.Length != 0)
                 {
+                    //Para cada uno de ellos.
                     foreach (Skeleton skel in skeletons)
                     {
+                        //Se dibujan los borden en los que se pierde información.
                         RenderClippedEdges(skel, dc);
 
+                        //Si el esqueleto está rastreado correctamente.
                         if (skel.TrackingState == SkeletonTrackingState.Tracked)
                         {
+                            //Se dibuja el esqueleto.
                             this.DrawBonesAndJoints(skel, dc);
                         }
+                        //En otro caso, si solo se conoce la posición, se dibuja una elipse.
                         else if (skel.TrackingState == SkeletonTrackingState.PositionOnly)
                         {
                             dc.DrawEllipse(
@@ -241,19 +261,19 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                     }
                 }
 
-                // prevent drawing outside of our render area
+                // Nos evita dibujar fuera del area de renderizado
                 this.drawingGroup.ClipGeometry = new RectangleGeometry(new Rect(0.0, 0.0, RenderWidth, RenderHeight));
             }
         }
 
         /// <summary>
-        /// Draws a skeleton's bones and joints
+        /// Dibuja huesos y articulaciones del esqueleto
         /// </summary>
-        /// <param name="skeleton">skeleton to draw</param>
-        /// <param name="drawingContext">drawing context to draw to</param>
+        /// <param name="skeleton">esqueleto a dibujar</param>
+        /// <param name="drawingContext">contexto de dibujo para dibujar</param>
         private void DrawBonesAndJoints(Skeleton skeleton, DrawingContext drawingContext)
         {
-            // Render Torso
+            // Renderizado del Torso
             this.DrawBone(skeleton, drawingContext, JointType.Head, JointType.ShoulderCenter);
             this.DrawBone(skeleton, drawingContext, JointType.ShoulderCenter, JointType.ShoulderLeft);
             this.DrawBone(skeleton, drawingContext, JointType.ShoulderCenter, JointType.ShoulderRight);
@@ -262,27 +282,29 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
             this.DrawBone(skeleton, drawingContext, JointType.HipCenter, JointType.HipLeft);
             this.DrawBone(skeleton, drawingContext, JointType.HipCenter, JointType.HipRight);
 
-            // Left Arm
+            // Brazo izquierdo
             this.DrawBone(skeleton, drawingContext, JointType.ShoulderLeft, JointType.ElbowLeft);
             this.DrawBone(skeleton, drawingContext, JointType.ElbowLeft, JointType.WristLeft);
             this.DrawBone(skeleton, drawingContext, JointType.WristLeft, JointType.HandLeft);
 
-            // Right Arm
+            // Brazo derecho
             this.DrawBone(skeleton, drawingContext, JointType.ShoulderRight, JointType.ElbowRight);
             this.DrawBone(skeleton, drawingContext, JointType.ElbowRight, JointType.WristRight);
             this.DrawBone(skeleton, drawingContext, JointType.WristRight, JointType.HandRight);
 
-            // Left Leg
+            // Pierna izquierda
             this.DrawBone(skeleton, drawingContext, JointType.HipLeft, JointType.KneeLeft);
             this.DrawBone(skeleton, drawingContext, JointType.KneeLeft, JointType.AnkleLeft);
             this.DrawBone(skeleton, drawingContext, JointType.AnkleLeft, JointType.FootLeft);
 
-            // Right Leg
+            // Pierna derecha
             this.DrawBone(skeleton, drawingContext, JointType.HipRight, JointType.KneeRight);
             this.DrawBone(skeleton, drawingContext, JointType.KneeRight, JointType.AnkleRight);
             this.DrawBone(skeleton, drawingContext, JointType.AnkleRight, JointType.FootRight);
  
-            // Render Joints
+            // Renderizado de articulaciones
+            // Para cada articulacion, se elige un pincel con el que se va a pintar,
+            // en función de si está rastreado correctamente o no.
             foreach (Joint joint in skeleton.Joints)
             {
                 Brush drawBrush = null;

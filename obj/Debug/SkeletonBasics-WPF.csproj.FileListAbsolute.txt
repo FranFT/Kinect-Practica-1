@@ -10,3 +10,15 @@ C:\Users\Fran\Desktop\Prácticas NPI\Practica 1\obj\Debug\Microsoft.Samples.Kine
 C:\Users\Fran\Desktop\Prácticas NPI\Practica 1\obj\Debug\SkeletonBasics-WPF.csproj.GenerateResource.Cache
 C:\Users\Fran\Desktop\Prácticas NPI\Practica 1\obj\Debug\SkeletonBasics-WPF.exe
 C:\Users\Fran\Desktop\Prácticas NPI\Practica 1\obj\Debug\SkeletonBasics-WPF.pdb
+C:\Users\Fran\Documents\GitHub\Kinect-Practica-1\obj\Debug\SkeletonBasics-WPF.exe
+C:\Users\Fran\Documents\GitHub\Kinect-Practica-1\obj\Debug\SkeletonBasics-WPF.pdb
+C:\Users\Fran\Documents\GitHub\Kinect-Practica-1\bin\Debug\SkeletonBasics-WPF.exe
+C:\Users\Fran\Documents\GitHub\Kinect-Practica-1\bin\Debug\SkeletonBasics-WPF.pdb
+C:\Users\Fran\Documents\GitHub\Kinect-Practica-1\obj\Debug\SkeletonBasics-WPF.csprojResolveAssemblyReference.cache
+C:\Users\Fran\Documents\GitHub\Kinect-Practica-1\obj\Debug\MainWindow.baml
+C:\Users\Fran\Documents\GitHub\Kinect-Practica-1\obj\Debug\MainWindow.g.cs
+C:\Users\Fran\Documents\GitHub\Kinect-Practica-1\obj\Debug\App.g.cs
+C:\Users\Fran\Documents\GitHub\Kinect-Practica-1\obj\Debug\SkeletonBasics-WPF_MarkupCompile.cache
+C:\Users\Fran\Documents\GitHub\Kinect-Practica-1\obj\Debug\SkeletonBasics-WPF.g.resources
+C:\Users\Fran\Documents\GitHub\Kinect-Practica-1\obj\Debug\Microsoft.Samples.Kinect.SkeletonBasics.Properties.Resources.resources
+C:\Users\Fran\Documents\GitHub\Kinect-Practica-1\obj\Debug\SkeletonBasics-WPF.csproj.GenerateResource.Cache
