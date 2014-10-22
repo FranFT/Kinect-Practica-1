@@ -10,6 +10,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
     using System.Windows;
     using System.Windows.Media;
     using Microsoft.Kinect;
+    using System;
 
     /// <summary>
     /// Interaction logic for MainWindow.xaml
@@ -227,7 +228,6 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                     skeletonFrame.CopySkeletonDataTo(skeletons);
                 }
             }
-
             using (DrawingContext dc = this.drawingGroup.Open())
             {
                 // Dibuja un fondo transparante para configurar el tamaño de renderizado.
@@ -273,14 +273,16 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         /// <param name="drawingContext">contexto de dibujo para dibujar</param>
         private void DrawBonesAndJoints(Skeleton skeleton, DrawingContext drawingContext)
         {
-            // Renderizado del Torso
-            this.DrawBone(skeleton, drawingContext, JointType.Head, JointType.ShoulderCenter);
-            this.DrawBone(skeleton, drawingContext, JointType.ShoulderCenter, JointType.ShoulderLeft);
-            this.DrawBone(skeleton, drawingContext, JointType.ShoulderCenter, JointType.ShoulderRight);
-            this.DrawBone(skeleton, drawingContext, JointType.ShoulderCenter, JointType.Spine);
-            this.DrawBone(skeleton, drawingContext, JointType.Spine, JointType.HipCenter);
-            this.DrawBone(skeleton, drawingContext, JointType.HipCenter, JointType.HipLeft);
-            this.DrawBone(skeleton, drawingContext, JointType.HipCenter, JointType.HipRight);
+            if(checkMovTorsoPlanoXZ(10, ref skeleton, ref drawingContext)){
+                // Renderizado del Torso
+                this.DrawBone(skeleton, drawingContext, JointType.Head, JointType.ShoulderCenter);
+                this.DrawBone(skeleton, drawingContext, JointType.ShoulderCenter, JointType.ShoulderLeft);
+                this.DrawBone(skeleton, drawingContext, JointType.ShoulderCenter, JointType.ShoulderRight);
+                this.DrawBone(skeleton, drawingContext, JointType.ShoulderCenter, JointType.Spine);
+                this.DrawBone(skeleton, drawingContext, JointType.Spine, JointType.HipCenter);
+                this.DrawBone(skeleton, drawingContext, JointType.HipCenter, JointType.HipLeft);
+                this.DrawBone(skeleton, drawingContext, JointType.HipCenter, JointType.HipRight);
+            }
 
             // Brazo izquierdo
             this.DrawBone(skeleton, drawingContext, JointType.ShoulderLeft, JointType.ElbowLeft);
@@ -393,5 +395,122 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                 }
             }
         }
+
+
+
+        /****************************************************************
+         *                                                              
+         *  Hasta aquí el fichero original de SkeletonBasics-WPF salvo
+         *  la pequeña modificación el la función "DrawBonesAndJoints"
+         *  en la que se llama a la función "checkMovTorsoPlanoXZ"
+         *  definida a continuación) la cual devuelve si el movimiento
+         *  en concreto es correcto o no.
+         *  Si el movimiento es correcto, se devuelve 'true' y se 
+         *  ejecutará el código dentro de la sentencia 'if' que hará
+         *  que se pinte el torso de color verde tal y como se hace
+         *  por defecto.
+         *  Si el movimiento es incorrecto, se devuelve 'false' y es
+         *  entonces cuando la función "checkMovTorsoPlanoXZ" se
+         *  encargará de dibujar el torso de color rojo ya que las
+         *  instrucciones dentro del 'if' no se ejecutarán.
+         *  
+         * **************************************************************/
+
+
+
+        /// <summary>
+        /// Duplicado de la función "Draw Bone" para dibujar los huesos en rojo.
+        /// </summary>
+        /// <param name="skeleton">skeleton to draw bones from</param>
+        /// <param name="drawingContext">drawing context to draw to</param>
+        /// <param name="jointType0">joint to start drawing from</param>
+        /// <param name="jointType1">joint to end drawing at</param>
+        private void DibujarHuesoRojo(Skeleton skeleton, DrawingContext drawingContext, JointType jointType0, JointType jointType1)
+        {
+            Joint joint0 = skeleton.Joints[jointType0];
+            Joint joint1 = skeleton.Joints[jointType1];
+
+            // If we can't find either of these joints, exit
+            if (joint0.TrackingState == JointTrackingState.NotTracked ||
+                joint1.TrackingState == JointTrackingState.NotTracked)
+            {
+                return;
+            }
+
+            // Don't draw if both points are inferred
+            if (joint0.TrackingState == JointTrackingState.Inferred &&
+                joint1.TrackingState == JointTrackingState.Inferred)
+            {
+                return;
+            }
+
+            // We assume all drawn bones are inferred unless BOTH joints are tracked
+            Pen drawPen = this.inferredBonePen;
+            if (joint0.TrackingState == JointTrackingState.Tracked && joint1.TrackingState == JointTrackingState.Tracked)
+            {
+                //Aquí es donde escogemos el pincel rojo en caso de que las dos articulaciones estén en estado 'Tracked'.
+                //Si no es así, se dibujarán en gris, con el pincel definido por defecto 'inferredBonePen'.
+                drawPen = new Pen(Brushes.Red, 1);
+            }
+
+            drawingContext.DrawLine(drawPen, this.SkeletonPointToScreen(joint0.Position), this.SkeletonPointToScreen(joint1.Position));
+        }
+
+        /// <summary>
+        /// Comprueba que el movimiento del torso en el plano XZ es correcto o no para un ángulo dado.
+        /// </summary>
+        /// <param name="angulo">angulo que al que se debe hacer el movimiento</param>
+        /// <param name="skeleton">esqueleto del que se dibujan los huesos. Se pasa por referencia</param>
+        /// <param name="drawingContext">contexto de dibujo. Se pasa por referencia</param>
+        /// <returns name="true">Si el movimiento es correcto</returns>
+        /// <returns name="false">Si el movimiento no es correcto</returns>
+       // int frame = 0;
+        private bool checkMovTorsoPlanoXZ(int angulo, ref Skeleton skeleton, ref DrawingContext drawingContext)
+        {
+            bool movimiento_correcto = false;
+
+            //** http://msdn.microsoft.com/en-us/library/hh973073.aspx **//
+            //Capturamos las coordenadas de los puntos que nos interesan para este movimiento.
+            SkeletonPoint cadera = skeleton.Joints[JointType.HipCenter].Position;
+            SkeletonPoint espalda = skeleton.Joints[JointType.Spine].Position;
+            SkeletonPoint cuello = skeleton.Joints[JointType.ShoulderCenter].Position;
+
+            /**************************************************************
+             *    Cálculos para determinar si el movimiento es correcto.  *
+             *              (Aun por definir)                             *
+             **************************************************************/
+
+            //Si el movimiento no es correcto se llama a la función de dibujado duplicada "DibujarHuesoRojo".
+            if (!movimiento_correcto)
+            {
+                this.DibujarHuesoRojo(skeleton, drawingContext, JointType.Head, JointType.ShoulderCenter);
+                this.DibujarHuesoRojo(skeleton, drawingContext, JointType.ShoulderCenter, JointType.ShoulderLeft);
+                this.DibujarHuesoRojo(skeleton, drawingContext, JointType.ShoulderCenter, JointType.ShoulderRight);
+                this.DibujarHuesoRojo(skeleton, drawingContext, JointType.ShoulderCenter, JointType.Spine);
+                this.DibujarHuesoRojo(skeleton, drawingContext, JointType.Spine, JointType.HipCenter);
+                this.DibujarHuesoRojo(skeleton, drawingContext, JointType.HipCenter, JointType.HipLeft);
+                this.DibujarHuesoRojo(skeleton, drawingContext, JointType.HipCenter, JointType.HipRight);
+            }
+            //Si el movimiento es correcto, se devuelve 'true'
+            else
+            {
+                movimiento_correcto = true;
+            }
+
+            return movimiento_correcto;
+        }
     }
 }
+
+//Definimos un stream de escritura para la salida a un fichero de los datos captados.
+/* if (frame % 10 == 0)
+ {
+     StreamWriter output_stream = new StreamWriter(@"C:\Users\Fran\Desktop\profundidad.txt", true);
+     output_stream.WriteLine(frame);
+     output_stream.WriteLine("cuello X:" + cuello.X + " Y:" + cuello.Y + " Z:" + cuello.Z);
+     output_stream.WriteLine("espald X:" + espalda.X + " Y:" + espalda.Y + " Z:" + espalda.Z);
+     output_stream.WriteLine("cadera X:" + cadera.X + " Y:" + cadera.Y + " Z:" + cadera.Z);
+     output_stream.WriteLine("");
+     output_stream.Close();
+ }
+ frame++;*/
