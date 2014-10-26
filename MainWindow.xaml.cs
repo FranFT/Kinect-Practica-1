@@ -273,7 +273,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         /// <param name="drawingContext">contexto de dibujo para dibujar</param>
         private void DrawBonesAndJoints(Skeleton skeleton, DrawingContext drawingContext)
         {
-            if(checkMovTorsoPlanoXZ(10, ref skeleton, ref drawingContext)){
+            if(checkMovTorsoPlanoXZ(45, ref skeleton, ref drawingContext)){
                 // Renderizado del Torso
                 this.DrawBone(skeleton, drawingContext, JointType.Head, JointType.ShoulderCenter);
                 this.DrawBone(skeleton, drawingContext, JointType.ShoulderCenter, JointType.ShoulderLeft);
@@ -464,7 +464,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         /// <param name="drawingContext">contexto de dibujo. Se pasa por referencia</param>
         /// <returns name="true">Si el movimiento es correcto</returns>
         /// <returns name="false">Si el movimiento no es correcto</returns>
-       // int frame = 0;
+
         private bool checkMovTorsoPlanoXZ(int angulo, ref Skeleton skeleton, ref DrawingContext drawingContext)
         {
             bool movimiento_correcto = false;
@@ -477,8 +477,12 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
 
             /**************************************************************
              *    Cálculos para determinar si el movimiento es correcto.  *
-             *              (Aun por definir)                             *
+             *                                                            *
              **************************************************************/
+
+            //Identificación básica del movimiento. (Falta controlar el ángulo de inclinación.)
+            if (cadera.Z > espalda.Z && espalda.Z > cuello.Z)
+                movimiento_correcto = true;
 
             //Si el movimiento no es correcto se llama a la función de dibujado duplicada "DibujarHuesoRojo".
             if (!movimiento_correcto)
@@ -491,12 +495,7 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                 this.DibujarHuesoRojo(skeleton, drawingContext, JointType.HipCenter, JointType.HipLeft);
                 this.DibujarHuesoRojo(skeleton, drawingContext, JointType.HipCenter, JointType.HipRight);
             }
-            //Si el movimiento es correcto, se devuelve 'true'
-            else
-            {
-                movimiento_correcto = true;
-            }
-
+            
             return movimiento_correcto;
         }
     }
