@@ -273,7 +273,10 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         /// <param name="drawingContext">contexto de dibujo para dibujar</param>
         private void DrawBonesAndJoints(Skeleton skeleton, DrawingContext drawingContext)
         {
-            if(checkMovTorsoPlanoXZ(45, ref skeleton, ref drawingContext)){
+            bool adelantado = false;
+            bool movimiento_correcto = checkMovTorsoPlanoXZ(45, ref skeleton, ref drawingContext, ref adelantado);
+
+            if(movimiento_correcto){
                 // Renderizado del Torso
                 this.DrawBone(skeleton, drawingContext, JointType.Head, JointType.ShoulderCenter);
                 this.DrawBone(skeleton, drawingContext, JointType.ShoulderCenter, JointType.ShoulderLeft);
@@ -311,9 +314,23 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
             {
                 Brush drawBrush = null;
 
+                //Si el punto esta en estado "Traked".
                 if (joint.TrackingState == JointTrackingState.Tracked)
                 {
-                    drawBrush = this.trackedJointBrush;                    
+                    //Si el movimiento es correcto se pintan todas las articulaciones en verde.
+                    drawBrush = this.trackedJointBrush;
+                    //Si no es correcto y se trata de una de las articulaciones del torso.
+                    if (!movimiento_correcto &&
+                        (joint.JointType == JointType.Head || joint.JointType == JointType.ShoulderCenter ||
+                         joint.JointType == JointType.ShoulderLeft || joint.JointType == JointType.ShoulderRight ||
+                         joint.JointType == JointType.Spine || joint.JointType == JointType.HipCenter) )
+                    {
+                        //Si está adelantado se pinta en turquesa.
+                        if (adelantado)
+                            drawBrush = Brushes.Turquoise;
+                        //Si está atrasado se pinta en amarillo.
+                        else drawBrush = Brushes.Yellow;
+                    }
                 }
                 else if (joint.TrackingState == JointTrackingState.Inferred)
                 {
@@ -465,10 +482,11 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         /// <returns name="true">Si el movimiento es correcto</returns>
         /// <returns name="false">Si el movimiento no es correcto</returns>
 
-        private bool checkMovTorsoPlanoXZ(int angulo, ref Skeleton skeleton, ref DrawingContext drawingContext)
+        private bool checkMovTorsoPlanoXZ(int angulo, ref Skeleton skeleton, ref DrawingContext drawingContext, ref bool adelatado)
         {
             bool movimiento_correcto = false;
-
+            double hipotenusa = 0.0, aux = 0.0;
+            int  angulo_actual = 0;
             //** http://msdn.microsoft.com/en-us/library/hh973073.aspx **//
             //Capturamos las coordenadas de los puntos que nos interesan para este movimiento.
             SkeletonPoint cadera = skeleton.Joints[JointType.HipCenter].Position;
@@ -480,8 +498,11 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
              *                                                            *
              **************************************************************/
 
-            //Identificación básica del movimiento. (Falta controlar el ángulo de inclinación.)
-            if (cadera.Z > espalda.Z && espalda.Z > cuello.Z)
+            hipotenusa = Math.Sqrt(Math.Pow((cuello.Z-cadera.Z),2)+Math.Pow((cuello.Y-cadera.Y),2));  
+            aux = Math.Cos((cuello.Y-cadera.Y)/hipotenusa);
+            angulo_actual = 90 - (int)((Math.Acos(aux)*180)/3.1416);
+
+            if (angulo_actual > angulo - angulo * 0.05 && angulo_actual < angulo + angulo * 0.05 && cadera.Z > espalda.Z && espalda.Z > cuello.Z)
                 movimiento_correcto = true;
 
             //Si el movimiento no es correcto se llama a la función de dibujado duplicada "DibujarHuesoRojo".
@@ -494,6 +515,11 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                 this.DibujarHuesoRojo(skeleton, drawingContext, JointType.Spine, JointType.HipCenter);
                 this.DibujarHuesoRojo(skeleton, drawingContext, JointType.HipCenter, JointType.HipLeft);
                 this.DibujarHuesoRojo(skeleton, drawingContext, JointType.HipCenter, JointType.HipRight);
+
+                if (angulo_actual < angulo)
+                    adelatado = false;
+                else
+                    adelatado = true;
             }
             
             return movimiento_correcto;
