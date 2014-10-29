@@ -317,9 +317,9 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
                 //Si el punto esta en estado "Traked".
                 if (joint.TrackingState == JointTrackingState.Tracked)
                 {
-                    //Si el movimiento es correcto se pintan todas las articulaciones en verde.
+                    //Se pintan todas las articulaciones en verde por defecto, pero:
                     drawBrush = this.trackedJointBrush;
-                    //Si no es correcto y se trata de una de las articulaciones del torso.
+                    //Si el movimiento no es correcto y se trata de una de las articulaciones del torso.
                     if (!movimiento_correcto &&
                         (joint.JointType == JointType.Head || joint.JointType == JointType.ShoulderCenter ||
                          joint.JointType == JointType.ShoulderLeft || joint.JointType == JointType.ShoulderRight ||
@@ -430,6 +430,11 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
          *  entonces cuando la función "checkMovTorsoPlanoXZ" se
          *  encargará de dibujar el torso de color rojo ya que las
          *  instrucciones dentro del 'if' no se ejecutarán.
+         *  Además, gracias al parámetro "bool adelantado" que se pasa
+         *  por referencia, tendremos otro valor de retorno que nos
+         *  servirá para dibujar las articulaciones en turquesa o
+         *  amarillo en función de si el movimiento está adelantado
+         *  o no.
          *  
          * **************************************************************/
 
@@ -526,16 +531,3 @@ namespace Microsoft.Samples.Kinect.SkeletonBasics
         }
     }
 }
-
-//Definimos un stream de escritura para la salida a un fichero de los datos captados.
-/* if (frame % 10 == 0)
- {
-     StreamWriter output_stream = new StreamWriter(@"C:\Users\Fran\Desktop\profundidad.txt", true);
-     output_stream.WriteLine(frame);
-     output_stream.WriteLine("cuello X:" + cuello.X + " Y:" + cuello.Y + " Z:" + cuello.Z);
-     output_stream.WriteLine("espald X:" + espalda.X + " Y:" + espalda.Y + " Z:" + espalda.Z);
-     output_stream.WriteLine("cadera X:" + cadera.X + " Y:" + cadera.Y + " Z:" + cadera.Z);
-     output_stream.WriteLine("");
-     output_stream.Close();
- }
- frame++;*/
